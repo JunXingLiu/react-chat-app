@@ -27,16 +27,12 @@ const Chat = ({location}) => {
         setName(name);
         setRoom(room);
 
-        socket.emit('join', { name, room }, () => {
-            
-        });
+        socket.emit('join', { name, room }, (error) => {
+            if(error) {
+              alert(error);
+            }
+          });
 
-        // when disconnecting
-        return () => {
-            socket.emit('disconnect');
-
-            socket.off();
-        }
     }, [ENDPOINT, location.search])
 
     // receiving messages
@@ -45,17 +41,24 @@ const Chat = ({location}) => {
             setMessages([ ...messages, message ]);
         });
     
-
+        // shows people in room
         socket.on('roomData', ({ users }) => {
             setUsers(users);
-        })
+        });
+
+        // when disconnecting
+        return () => {
+            socket.emit('disconnect');
+
+            socket.off();
+        }
 
     }, [messages]);
 
     const sendMessage = (event) => {
         event.preventDefault();
-    
-        if(message) {
+        
+        if(message.trim()) {
           socket.emit('sendMessage', message, () => setMessage(''));
         }
       }
